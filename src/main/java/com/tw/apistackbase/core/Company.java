@@ -1,9 +1,12 @@
 package com.tw.apistackbase.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
+@JsonIgnoreProperties(value = {"id"})
 public class Company {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
