@@ -36,4 +36,11 @@ public class CompanyController {
         }
         return null;
     }
+
+    @DeleteMapping(path = "/delete/{id}", produces = {"application/json"})
+    public Iterable<Company> delete(@PathVariable Long id) {
+        companyRepository.deleteById(id);
+        return companyRepository.findAll();
+    }
+
 }
