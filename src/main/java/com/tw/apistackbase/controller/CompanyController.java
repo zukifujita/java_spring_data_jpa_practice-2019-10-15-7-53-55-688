@@ -20,28 +20,42 @@ public class CompanyController {
     CompanyService companyService;
 
     @GetMapping(value = "/all", produces = {"application/json"})
-    public Iterable<Company> list(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize) {
-        return companyService.findAllByPage(page, pageSize);
+    public ResponseEntity<Iterable<Company>> list(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize) {
+        Iterable<Company> companyFromService = companyService.findAllByPage(page, pageSize);
+        return new ResponseEntity<>(companyFromService, HttpStatus.OK);
     }
 
     @GetMapping(produces = {"application/json"})
-    public Iterable<Company> listById(@RequestParam String name) {
-        return companyService.findAllLikeName(name);
+    public ResponseEntity<Iterable<Company>> listById(@RequestParam String name) {
+        Iterable<Company> companyFromService = companyService.findAllLikeName(name);
+        return new ResponseEntity<>(companyFromService, HttpStatus.OK);
     }
 
     @PostMapping(produces = {"application/json"})
-    @ResponseStatus(code = HttpStatus.CREATED)
-    public Company add(@RequestBody Company company) {
-        return companyService.addCompany(company);
+    public ResponseEntity<Company> add(@RequestBody Company company) {
+        companyService.addCompany(company);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PutMapping(path = "/edit/{id}", produces = {"application/json"})
     public ResponseEntity<Company> edit(@PathVariable Long id, @RequestBody Company company) {
-        return companyService.editCompany(id, company);
+        Company companyFromService = companyService.editCompany(id, company);
+
+        if (companyFromService != null) {
+            return new ResponseEntity<>(companyFromService, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping(path = "/delete/{id}", produces = {"application/json"})
     public ResponseEntity<Company> delete(@PathVariable Long id) {
-        return companyService.deleteCompany(id);
+        Company companyFromService = companyService.deleteCompany(id);
+
+        if (companyFromService != null) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }
