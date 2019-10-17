@@ -79,6 +79,20 @@ public class CompanyControllerTest {
         resultOfExecution.andExpect(status().isOk()).andExpect(jsonPath("$[0].name", is("Test")));
     }
 
+    @Test
+    public void should_return_OK_when_given_new_company_to_add() throws Exception {
+        Company company = buildCompany("PostTest");
+
+        when(companyService.addCompany(any())).thenReturn(company);
+
+        ResultActions resultOfExecution = mvc.perform(post("/companies")
+                .content(asJsonString(company))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON));
+
+        resultOfExecution.andExpect(status().isCreated()).andExpect(jsonPath("$.name", is("PostTest")));
+    }
+
     private Company buildCompany(String companyName) {
         Employee employee = new Employee();
         employee.setId(1);
@@ -91,5 +105,13 @@ public class CompanyControllerTest {
         company.setEmployees(Collections.singletonList(employee));
 
         return company;
+    }
+
+    public static String asJsonString(final Company obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
