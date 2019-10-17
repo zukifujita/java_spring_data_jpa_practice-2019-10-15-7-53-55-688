@@ -62,6 +62,23 @@ public class CompanyControllerTest {
         resultOfExecution.andExpect(status().isOk()).andExpect(jsonPath("$[0].name", is("Test")));
     }
 
+    @Test
+    public void should_return_all_company_when_no_specified_string() throws Exception {
+        Company company = buildCompany("Test");
+
+        LinkedMultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("page", "1");
+        requestParams.add("pageSize", "5");
+
+        companyList.add(company);
+
+        when(companyService.findAllByPage(anyInt(), anyInt())).thenReturn(companyList);
+
+        ResultActions resultOfExecution = mvc.perform(get("/companies/all").params(requestParams));
+
+        resultOfExecution.andExpect(status().isOk()).andExpect(jsonPath("$[0].name", is("Test")));
+    }
+
     private Company buildCompany(String companyName) {
         Employee employee = new Employee();
         employee.setId(1);
