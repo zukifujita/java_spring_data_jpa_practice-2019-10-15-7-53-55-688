@@ -27,8 +27,8 @@ public class CompanyController {
 
     @PostMapping(produces = {"application/json"})
     public ResponseEntity<Company> add(@RequestBody Company company) {
-        companyService.addCompany(company);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        Company companyFromService = companyService.addCompany(company);
+        return new ResponseEntity<>(companyFromService, HttpStatus.CREATED);
     }
 
     @PutMapping(path = "/edit/{id}", produces = {"application/json"})
