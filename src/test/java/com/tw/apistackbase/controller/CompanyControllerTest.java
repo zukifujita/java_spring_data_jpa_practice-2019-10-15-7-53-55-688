@@ -27,8 +27,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,6 +90,21 @@ public class CompanyControllerTest {
                 .accept(MediaType.APPLICATION_JSON));
 
         resultOfExecution.andExpect(status().isCreated()).andExpect(jsonPath("$.name", is("PostTest")));
+    }
+
+    @Test
+    public void should_return_OK_when_given_updated_company_to_put() throws Exception {
+        Company company = buildCompany("OldTest");
+        Company newCompany = buildCompany("NewTest");
+
+        when(companyService.editCompany(anyLong(), any())).thenReturn(new ResponseEntity<>(newCompany, HttpStatus.OK));
+
+        ResultActions resultOfExecution = mvc.perform(put("/companies/edit/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(asJsonString(company)));
+
+        resultOfExecution.andExpect(status().isOk()).andExpect(jsonPath("$.name", is(newCompany.getName())));
     }
 
     private Company buildCompany(String companyName) {
