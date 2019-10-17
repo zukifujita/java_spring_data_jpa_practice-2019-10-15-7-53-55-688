@@ -79,7 +79,7 @@ public class CompanyControllerTest {
     }
 
     @Test
-    public void should_return_OK_when_given_new_company_to_add() throws Exception {
+    public void should_return_CREATED_when_given_new_company_to_add() throws Exception {
         Company company = buildCompany("PostTest");
 
         when(companyService.addCompany(any())).thenReturn(company);
@@ -89,7 +89,8 @@ public class CompanyControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON));
 
-        resultOfExecution.andExpect(status().isCreated()).andExpect(jsonPath("$.name", is("PostTest")));
+        resultOfExecution.andExpect(status()
+                .isCreated());
     }
 
     @Test
@@ -97,7 +98,7 @@ public class CompanyControllerTest {
         Company company = buildCompany("OldTest");
         Company newCompany = buildCompany("NewTest");
 
-        when(companyService.editCompany(anyLong(), any())).thenReturn(new ResponseEntity<>(newCompany, HttpStatus.OK));
+        when(companyService.editCompany(anyLong(), any())).thenReturn(newCompany);
 
         ResultActions resultOfExecution = mvc.perform(put("/companies/edit/{id}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -108,12 +109,37 @@ public class CompanyControllerTest {
     }
 
     @Test
+    public void should_return_NOT_FOUND_when_no_given_updated_company_to_put() throws Exception {
+        Company company = buildCompany("OldTest");
+
+        when(companyService.editCompany(anyLong(), any())).thenReturn(null);
+
+        ResultActions resultOfExecution = mvc.perform(put("/companies/edit/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(asJsonString(company)));
+
+        resultOfExecution.andExpect(status().isNotFound());
+    }
+
+    @Test
     public void should_return_OK_when_given_company_to_delete() throws Exception {
-        when(companyService.deleteCompany(anyLong())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        Company company = buildCompany("DeleteTest");
+
+        when(companyService.deleteCompany(anyLong())).thenReturn(company);
 
         ResultActions resultOfExecution = mvc.perform(delete("/companies/delete/{id}", 1L));
 
         resultOfExecution.andExpect(status().isOk());
+    }
+
+    @Test
+    public void should_return_NOT_FOUND_when_no_given_company_to_delete() throws Exception {
+        when(companyService.deleteCompany(anyLong())).thenReturn(null);
+
+        ResultActions resultOfExecution = mvc.perform(delete("/companies/delete/{id}", 1L));
+
+        resultOfExecution.andExpect(status().isNotFound());
     }
 
     private Company buildCompany(String companyName) {
