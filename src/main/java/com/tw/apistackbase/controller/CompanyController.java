@@ -2,6 +2,7 @@ package com.tw.apistackbase.controller;
 
 import com.tw.apistackbase.core.Company;
 import com.tw.apistackbase.repository.CompanyRepository;
+import com.tw.apistackbase.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,50 +17,31 @@ import java.util.Optional;
 @RequestMapping("/companies")
 public class CompanyController {
     @Autowired
-    CompanyRepository companyRepository;
+    CompanyService companyService;
 
     @GetMapping(value = "/all", produces = {"application/json"})
     public Iterable<Company> list(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize) {
-        if (page == null && pageSize == null) {
-            return companyRepository.findAll();
-        }
-
-        return companyRepository.findAll(PageRequest.of(page, pageSize));
-}
+        return companyService.findAllByPage(page, pageSize);
+    }
 
     @GetMapping(produces = {"application/json"})
     public Iterable<Company> listById(@RequestParam String name) {
-        return companyRepository.findByNameContaining(name);
+        return companyService.findAllLikeName(name);
     }
 
     @PostMapping(produces = {"application/json"})
     @ResponseStatus(code = HttpStatus.CREATED)
     public Company add(@RequestBody Company company) {
-        return companyRepository.save(company);
+        return companyService.addCompany(company);
     }
 
     @PutMapping(path = "/edit/{id}", produces = {"application/json"})
     public ResponseEntity<Company> edit(@PathVariable Long id, @RequestBody Company company) {
-        Company companyFromDB = companyRepository.findById(id).orElse(null);
-
-        if(companyFromDB != null){
-            companyFromDB.setName(company.getName());
-            companyRepository.save(companyFromDB);
-            return new ResponseEntity<>(companyFromDB, HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return companyService.editCompany(id, company);
     }
 
     @DeleteMapping(path = "/delete/{id}", produces = {"application/json"})
     public ResponseEntity<Company> delete(@PathVariable Long id) {
-        Company companyFromDB = companyRepository.findById(id).orElse(null);
-
-        if(companyFromDB != null) {
-            companyRepository.deleteById(id);
-            return new ResponseEntity<>(companyFromDB, HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return companyService.deleteCompany(id);
     }
 }
