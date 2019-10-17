@@ -107,6 +107,15 @@ public class CompanyControllerTest {
         resultOfExecution.andExpect(status().isOk()).andExpect(jsonPath("$.name", is(newCompany.getName())));
     }
 
+    @Test
+    public void should_return_OK_when_given_company_to_delete() throws Exception {
+        when(companyService.deleteCompany(anyLong())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+        ResultActions resultOfExecution = mvc.perform(delete("/companies/delete/{id}", 1L));
+
+        resultOfExecution.andExpect(status().isOk());
+    }
+
     private Company buildCompany(String companyName) {
         Employee employee = new Employee();
         employee.setId(1);
