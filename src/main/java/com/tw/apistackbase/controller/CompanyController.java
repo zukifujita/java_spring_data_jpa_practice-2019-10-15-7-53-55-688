@@ -2,14 +2,19 @@ package com.tw.apistackbase.controller;
 
 import com.tw.apistackbase.core.Company;
 import com.tw.apistackbase.service.CompanyService;
+import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Null;
+
 @RestController
 @RequestMapping("/companies")
 public class CompanyController {
+    private static final String COMPANY_NOT_FOUND = "Company not found";
+    private static final String VALUE_NAME_CANNOT_BE_NULL = "Value 'name' cannot be null.";
     @Autowired
     CompanyService companyService;
 
@@ -21,8 +26,12 @@ public class CompanyController {
 
     @GetMapping(produces = {"application/json"})
     public ResponseEntity<Iterable<Company>> listById(@RequestParam String name) {
-        Iterable<Company> companyFromService = companyService.findAllLikeName(name);
-        return new ResponseEntity<>(companyFromService, HttpStatus.OK);
+        if (name != null) {
+            Iterable<Company> companyFromService = companyService.findAllLikeName(name);
+            return new ResponseEntity<>(companyFromService, HttpStatus.OK);
+        }
+
+        throw new NullPointerException(VALUE_NAME_CANNOT_BE_NULL);
     }
 
     @PostMapping(produces = {"application/json"})
@@ -32,24 +41,24 @@ public class CompanyController {
     }
 
     @PutMapping(path = "/edit/{id}", produces = {"application/json"})
-    public ResponseEntity<Company> edit(@PathVariable Long id, @RequestBody Company company) {
+    public ResponseEntity<Company> edit(@PathVariable Long id, @RequestBody Company company) throws NotFoundException {
         Company companyFromService = companyService.editCompany(id, company);
 
         if (companyFromService != null) {
             return new ResponseEntity<>(companyFromService, HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        throw new NotFoundException(COMPANY_NOT_FOUND);
     }
 
     @DeleteMapping(path = "/delete/{id}", produces = {"application/json"})
-    public ResponseEntity<Company> delete(@PathVariable Long id) {
+    public ResponseEntity<Company> delete(@PathVariable Long id) throws NotFoundException {
         Company companyFromService = companyService.deleteCompany(id);
 
         if (companyFromService != null) {
             return new ResponseEntity<>(HttpStatus.OK);
         }
-
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        throw new NotFoundException(COMPANY_NOT_FOUND);
     }
+
 }
