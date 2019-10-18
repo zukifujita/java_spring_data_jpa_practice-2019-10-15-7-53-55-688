@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -78,7 +79,7 @@ public class CompanyControllerTest {
     public void should_return_CREATED_when_given_new_company_to_add() throws Exception {
         Company company = buildCompany("PostTest");
 
-        when(companyService.addCompany(any())).thenReturn(company);
+        when(companyService.addCompany(company)).thenReturn(company);
 
         ResultActions resultOfExecution = mvc.perform(post("/companies")
                 .content(asJsonString(company))
@@ -97,25 +98,28 @@ public class CompanyControllerTest {
         when(companyService.editCompany(anyLong(), any())).thenReturn(newCompany);
 
         ResultActions resultOfExecution = mvc.perform(put("/companies/edit/{id}", 1L)
+                .content(asJsonString(company))
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(asJsonString(company)));
+                .accept(MediaType.APPLICATION_JSON));
 
-        resultOfExecution.andExpect(status().isOk()).andExpect(jsonPath("$.name", is(newCompany.getName())));
+        resultOfExecution.andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(newCompany.getName())));
     }
 
     @Test
     public void should_return_NOT_FOUND_when_no_given_updated_company_to_put() throws Exception {
         Company company = buildCompany("OldTest");
 
-        when(companyService.editCompany(anyLong(), any())).thenReturn(null);
+        when(companyService.editCompany(1L, company)).thenReturn(null);
 
         ResultActions resultOfExecution = mvc.perform(put("/companies/edit/{id}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(asJsonString(company)));
 
-        resultOfExecution.andExpect(status().isNotFound());
+        resultOfExecution.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode", is(HttpStatus.NOT_FOUND.value())))
+                .andExpect(jsonPath("$.errorMessage", is("Company not found")));
     }
 
     @Test
@@ -131,11 +135,13 @@ public class CompanyControllerTest {
 
     @Test
     public void should_return_NOT_FOUND_when_no_given_company_to_delete() throws Exception {
-        when(companyService.deleteCompany(anyLong())).thenReturn(null);
+        when(companyService.deleteCompany(1L)).thenReturn(null);
 
         ResultActions resultOfExecution = mvc.perform(delete("/companies/delete/{id}", 1L));
 
-        resultOfExecution.andExpect(status().isNotFound());
+        resultOfExecution.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode", is(HttpStatus.NOT_FOUND.value())))
+                .andExpect(jsonPath("$.errorMessage", is("Company not found")));
     }
 
     private Company buildCompany(String companyName) {
